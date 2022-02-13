@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserDto } from './dto/user.dto';
 import { User } from './user.entity';
 import { UserRepository } from './user.repository';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
   constructor(
@@ -11,6 +11,10 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
   async createUser(user: UserDto): Promise<User> {
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(user.password, salt);
+    user.password = hash;
+    console.log(user);
     const userEntity = await this.userRepo.create(user);
     return await this.userRepo.save(userEntity);
   }
@@ -18,13 +22,12 @@ export class UserService {
     username: string,
     password: string,
   ): Promise<{ access_token: string }> {
-    const user = await this.userRepo.findOne({ username, password });
+    const user = await this.userRepo.findOne({ username });
     if (!user)
-      throw new HttpException(
-        'user name or password invalid',
-        HttpStatus.BAD_REQUEST,
-      );
-    user.password = undefined;
+      throw new HttpException('username invalid', HttpStatus.BAD_REQUEST);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      throw new HttpException('password invalid', HttpStatus.BAD_REQUEST);
     return { access_token: this.jwtService.sign({ ...user }) };
   }
 }

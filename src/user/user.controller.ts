@@ -1,11 +1,12 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { GetUser } from 'src/decorator/getUser.decorator';
 import { LoginDto } from './dto/login.dto';
 import { UserDto } from './dto/user.dto';
 import { Public } from './jwt/public';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-
+@ApiBearerAuth()
 @Controller('user')
 @ApiTags('users')
 export class UserController {
@@ -23,5 +24,10 @@ export class UserController {
   @Public()
   async login(@Body() loginDto: LoginDto): Promise<{ access_token: string }> {
     return await this.userService.login(loginDto.username, loginDto.password);
+  }
+
+  @Post('/getMe')
+  getMe(@GetUser() user: User): User {
+    return user;
   }
 }

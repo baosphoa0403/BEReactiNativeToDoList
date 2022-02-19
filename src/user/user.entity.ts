@@ -13,6 +13,8 @@ export class User {
   name: string;
   @Column()
   phone: string;
+  @Column()
+  avatar: string;
   @OneToMany(() => Task, (task) => task.user)
   task: Task[];
 }

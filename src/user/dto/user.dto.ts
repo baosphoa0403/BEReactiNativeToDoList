@@ -9,4 +9,5 @@ export class UserDto {
   name: string;
   @ApiProperty({ name: 'phone' })
   phone: string;
+  avatar: string;
 }
